@@ -1,0 +1,4 @@
+{
+    "command": "npm run test",
+    "working_directory": "/home/kavia/workspace/code-generation/serenethoughts-63075-4d95f666/serenethoughts_frontend"
+}
