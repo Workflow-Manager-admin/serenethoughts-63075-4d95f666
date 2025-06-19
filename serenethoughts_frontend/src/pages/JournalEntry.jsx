@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import JournalCard from "../components/JournalCard";
 import ConfirmationModal from "../components/ConfirmationModal";
 import ButtonPrimary from "../components/ButtonPrimary";
+import StreakCounter from "../components/StreakCounter";
 
-// PUBLIC_INTERFACE
 /**
  * JournalEntry page - manages the lifecycle of the JournalCard and ConfirmationModal
  * Handles smooth state transitions for the "Shred It" UX flow,
@@ -29,8 +29,56 @@ function JournalEntry({ onComplete, onCancel }) {
   const [inputDisabled, setInputDisabled] = useState(false);
   const [resetKey, setResetKey] = useState(0);
 
-  // Key for localStorage
+  // Streak state for journaling days
+  const [streak, setStreak] = useState(0);
+
+  // --- STREAK LOGIC START ---
+  // Compute streak from "thoughtDetoxEntries" localStorage: streak = max run of consecutive day entries including today (if present)
+  function computeStreak(entriesArr) {
+    if (!Array.isArray(entriesArr) || entriesArr.length === 0) return 0;
+    // Get all entry ISO dates, normalize to yyyy-mm-dd (no duplicates)
+    const dateSet = new Set();
+    for (const entry of entriesArr) {
+      if (entry.timestamp) {
+        dateSet.add(entry.timestamp.slice(0, 10));
+      }
+    }
+    const dates = [...dateSet].sort((a, b) => b.localeCompare(a)); // descending
+
+    if (dates.length === 0) return 0;
+    // streak starts from today if present, else from yesterday, etc.
+    let streakCount = 0;
+    let expected = new Date();
+
+    for (let i = 0; i < dates.length; ++i) {
+      const dStr = dates[i];
+      const expectedStr = expected.toISOString().slice(0, 10);
+      if (dStr === expectedStr) {
+        streakCount++;
+      } else {
+        // If today is missing, see if yesterday matches, continue only if previous day(s) match
+        if (i === 0 && streakCount === 0) {
+          // Maybe user missed today, try from yesterday
+          expected.setDate(expected.getDate() - 1);
+          const prevExpectStr = expected.toISOString().slice(0, 10);
+          if (dStr === prevExpectStr) {
+            streakCount++;
+          } else break;
+        } else {
+          break;
+        }
+      }
+      expected.setDate(expected.getDate() - 1);
+    }
+    return streakCount;
+  }
+
+  // --- STREAK LOGIC END ---
+
+  // Key for localStorage for legacy journal entries (unused for streak, but kept for compatibility)
   const ENTRIES_KEY = "td_journal_entries";
+  // Key for the real entries used for streak
+  const DETOX_ENTRIES_KEY = "thoughtDetoxEntries";
 
   // Load journal entries from localStorage on mount (robustly handles errors)
   useEffect(() => {
@@ -46,6 +94,19 @@ function JournalEntry({ onComplete, onCancel }) {
       data = [];
     }
     setJournalEntries(data);
+
+    // Also load detox entries for streak count
+    try {
+      const detoxStored = localStorage.getItem(DETOX_ENTRIES_KEY);
+      let detoxArr = [];
+      if (detoxStored) {
+        detoxArr = JSON.parse(detoxStored) || [];
+        if (!Array.isArray(detoxArr)) detoxArr = [];
+      }
+      setStreak(computeStreak(detoxArr));
+    } catch {
+      setStreak(0);
+    }
   }, []);
 
   // Save journalEntries array to localStorage whenever it changes
@@ -56,6 +117,26 @@ function JournalEntry({ onComplete, onCancel }) {
       // Non-blocking, just ignore save error
     }
   }, [journalEntries]);
+
+  // --- Listen for changes to "thoughtDetoxEntries" and update streak ---
+  useEffect(() => {
+    function handleStorageChange() {
+      try {
+        const arr = JSON.parse(localStorage.getItem(DETOX_ENTRIES_KEY));
+        setStreak(computeStreak(arr || []));
+      } catch {
+        setStreak(0);
+      }
+    }
+    window.addEventListener("storage", handleStorageChange);
+    // For same-tab updates: periodically check/local change
+    const interval = setInterval(handleStorageChange, 500); // update streak every 0.5sec if externally changed
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
 
   // Smooth fade out and modal show on Shred It
   const handleShred = () => {
@@ -90,15 +171,16 @@ function JournalEntry({ onComplete, onCancel }) {
         try {
           // Get previous array or initialize
           let allEntries = [];
-          const raw = localStorage.getItem("thoughtDetoxEntries");
+          const raw = localStorage.getItem(DETOX_ENTRIES_KEY);
           if (raw) {
             allEntries = JSON.parse(raw);
             if (!Array.isArray(allEntries)) allEntries = [];
           }
           allEntries.unshift(detoxEntry);
-          localStorage.setItem("thoughtDetoxEntries", JSON.stringify(allEntries));
+          localStorage.setItem(DETOX_ENTRIES_KEY, JSON.stringify(allEntries));
+          setStreak(computeStreak(allEntries));
         } catch (e) {
-          // Silently ignore storage errors
+          setStreak(0);
         }
 
         // Maintain the original journalEntries array (for legacy or other UI)
@@ -152,6 +234,10 @@ function JournalEntry({ onComplete, onCancel }) {
       className="container mx-auto max-w-xl mt-8 flex flex-col items-center min-h-[60vh] justify-center"
       style={{ position: "relative" }}
     >
+      {/* StreakCounter displayed at the top */}
+      <div className="w-full flex justify-center animate-fade-in mb-5" style={{ minHeight: 34 }}>
+        <StreakCounter streak={streak} />
+      </div>
       {/* JournalCard */}
       {!showModal && (
         <div
