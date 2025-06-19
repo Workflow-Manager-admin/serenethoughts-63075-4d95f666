@@ -142,8 +142,10 @@ function JournalEntry({ onComplete, onCancel }) {
 
   // Smooth fade out and modal show on Shred It
   const handleShred = (textValue) => {
-    // If empty — don't allow shredding, let JournalCard trigger visual feedback
-    if (!textValue || !textValue.trim()) return;
+    // If empty — don't allow shredding, let JournalCard trigger visual feedback (no-op)
+    if (!textValue || !textValue.trim()) {
+      return;
+    }
 
     setInputDisabled(true);
     setFading(true);

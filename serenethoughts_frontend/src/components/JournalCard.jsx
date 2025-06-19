@@ -82,17 +82,30 @@ function JournalCard({
   const handleBlur = () => { setPlaceholderActive(false); };
   const handleInput = (e) => { onChange(e); if (e.target.value) setPlaceholderActive(false); };
 
+  // New: handle gentle shake and warning if shredded while empty
+  const handleShredAttempt = (e) => {
+    e.preventDefault();
+    // Not allowed if value is empty or whitespace only
+    if (!value || !value.trim()) {
+      setShowEmptyMsg(true);
+      setShake(true);
+      if (typeof onShake === "function") onShake();
+      // Clear message and shake after short interval
+      setTimeout(() => { setShowEmptyMsg(false); setShake(false); }, 1300);
+      return;
+    }
+    // Allowed: propagate to parent
+    if (onShred) onShred(value);
+  };
+
   // Text for the animated placeholder
   const PLACEHOLDER_TEXT = "Type what’s bothering you…";
 
   return (
-    <div className={`st-journalcard-frosted mx-auto ${className}`} style={style}>
+    <div className={`st-journalcard-frosted mx-auto${shake ? " st-card-shake" : ""} ${className}`} style={style}>
       <form
         className="st-journalcard-content w-full"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (onShred) onShred(value); // Note: actual blocking will use prop logic!
-        }}
+        onSubmit={handleShredAttempt}
         autoComplete="off"
         style={{ width: "100%", position: "relative" }}
       >
