@@ -1,13 +1,8 @@
 import React, { useRef, useEffect, useState } from "react";
 import ButtonPrimary from "../components/ButtonPrimary";
 
-// PUBLIC_INTERFACE
 /**
- * CompletionScreen: Full-screen celebration for 7th entry OR regular completion.
- * Props:
- *  - isCelebration: boolean (if present, shows achievement view)
- *  - returnToJournal, viewProgress: callbacks (for celebration view)
- *  - onNewEntry, onShowHistory: for classic view
+ * CompletionScreen: Modern visual, celebration with soft backgrounds, accent tones, and gentle type/spacing.
  */
 function CompletionScreen({
   isCelebration,
@@ -19,12 +14,10 @@ function CompletionScreen({
   streak,
   lastEntry,
 }) {
-  // For fade-in animation
   const [emojiShown, setEmojiShown] = useState(false);
-  const celebrationEmoji = "🏅"; // could be any celebratory emoji/badge you like
+  const celebrationEmoji = "🏅";
 
   useEffect(() => {
-    // If celebratory, fade in the emoji/badge after a short delay
     if (isCelebration) {
       const timeout = setTimeout(() => setEmojiShown(true), 510);
       return () => clearTimeout(timeout);
@@ -35,43 +28,59 @@ function CompletionScreen({
     return (
       <section
         className="fixed inset-0 z-50 flex items-center justify-center min-h-screen w-full bg-gradient-to-br from-td-bg via-td-bg-dark to-td-accent transition-colors"
-        style={{ background: 'linear-gradient(122deg, #E5FBEC 0%, #e7e8fd 46%, #C0D6DF 100%)' }}
+        style={{
+          background: "linear-gradient(122deg, #e5fbec 0%, #f9fafd 33%, #e7e8fd 46%, #C0D6DF 100%)",
+          boxShadow: "inset 0 14px 112px 8px #C0D6DF30"
+        }}
         aria-modal="true"
         tabIndex={-1}
         role="dialog"
       >
-        <div className="flex flex-col items-center justify-center w-full max-w-md mx-auto px-4 py-12 min-h-[56vh] rounded-xl shadow-lg bg-td-card animate-fade-in-slow"
-             style={{
-               boxShadow: "0 8px 38px -8px #9ac4c831, 0 2.5px 15px -6px #605ad818",
-               minWidth: "90vw",
-               background: "rgba(255,255,255,0.93)",
-             }}>
+        <div
+          className="flex flex-col items-center justify-center w-full max-w-md mx-auto px-4 py-12 min-h-[56vh] rounded-2xl shadow-lg bg-td-card animate-fade-in-slow"
+          style={{
+            boxShadow: "0 12px 48px -10px #a7cddf29, 0 2.5px 21px -9px #60cea818",
+            minWidth: "91vw",
+            background: "rgba(255,255,255,0.98)",
+            borderRadius: "1.2em",
+          }}>
           <div
             className={`transition-all duration-850 mb-6 ${emojiShown ? "opacity-100 scale-110 animate-fade-in-slow" : "opacity-0 scale-90"}`}
             style={{
-              fontSize: "5.7rem",
-              textShadow: "0 4px 42px #C0D6DF55,0px 2px 0 #FFF",
+              fontSize: "5.4rem",
+              textShadow: "0 4px 42px #C0D6DF3e,0px 2px 0 #FFF",
               transition: "opacity 750ms cubic-bezier(.41,0,.16,1.78), transform 860ms cubic-bezier(.31,.09,0,1.32)",
-              filter: emojiShown ? "drop-shadow(0 4px 15px #c0d6df95)" : "none",
+              filter: emojiShown ? "drop-shadow(0 5px 25px #c0d6df90)" : "none",
               willChange: "opacity,transform",
-              userSelect: "none",
+              userSelect: "none"
             }}
             aria-label="Celebration"
           >
             {celebrationEmoji}
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-td-accent text-center animate-fade-in"
-              style={{
-                margin: "0 0 0.5em 0",
-                letterSpacing: "0.02em",
-                textShadow: "0 2px 8px #fff9",
-              }}>
-            You've unlocked 7 days of clarity.
-            <br />
-            Keep going.
+          <h2
+            className="text-3xl md:text-4xl font-bold text-td-accent text-center animate-fade-in"
+            style={{
+              margin: "0 0 0.3em 0",
+              letterSpacing: "0.021em",
+              textShadow: "0 2px 9px #fff9",
+              fontWeight: 800
+            }}
+          >
+            You've unlocked 7 days of clarity.<br />Keep going.
           </h2>
-          <div className="text-md md:text-lg text-td-muted text-center mb-6 animate-fade-in-slow" style={{ maxWidth: 430 }}>
-            Consistency is a superpower. Celebrate your week-long streak—and revisit your progress any time!
+          <div
+            className="text-md md:text-lg text-td-muted text-center mb-6 animate-fade-in-slow"
+            style={{
+              maxWidth: 430,
+              fontFamily: "Inter, Roboto, Arial, sans-serif",
+              fontSize: "1.10em",
+              fontWeight: 500,
+              letterSpacing: "0.001em",
+              margin: "0.65em 0 1em 0"
+            }}
+          >
+            Consistency is a superpower. Celebrate your week-long streak—<br />revisit your progress any time!
           </div>
           <div className="flex flex-col md:flex-row gap-4 mt-2 w-full max-w-[410px] animate-slide-fade-up">
             <ButtonPrimary
@@ -93,7 +102,13 @@ function CompletionScreen({
             onClick={goToWelcome}
             className="text-xs mt-6 text-td-muted hover:underline focus:outline-none bg-transparent"
             tabIndex={0}
-            style={{ outline: "none", border: "none", background: "none", cursor: "pointer" }}
+            style={{
+              outline: "none",
+              border: "none",
+              background: "none",
+              cursor: "pointer",
+              marginTop: "2em"
+            }}
           >
             ← Back to Home
           </button>
@@ -111,22 +126,40 @@ function CompletionScreen({
 
   // Default post-entry completion mode
   return (
-    <section className="container mx-auto flex flex-col items-center justify-center min-h-[60vh] animate-fade-in">
-      <div className="bg-td-card rounded-xl shadow p-8 w-full max-w-md flex flex-col items-center gap-5 animate-soft-in">
-        <div className="text-5xl mb-2 animate-fade-in-slow" aria-label="Well done">🌤</div>
-        <div className="text-2xl font-semibold text-td-accent">Entry saved</div>
-        <div className="text-lg text-td-muted">
+    <section className="container mx-auto flex flex-col items-center justify-center min-h-[63vh] animate-fade-in">
+      <div
+        className="bg-td-card rounded-2xl shadow-lg p-8 w-full max-w-md flex flex-col items-center gap-6 animate-soft-in"
+        style={{
+          border: "1px solid var(--td-border)",
+          boxShadow: "0 6px 33px -10px #c1dad022, 0 1.5px 8px -5px #92efcf17",
+          background: "rgba(255,255,255,0.97)",
+        }}>
+        <div className="text-5xl mb-2 animate-fade-in-slow" aria-label="Well done"
+          style={{ textShadow: "0 4px 14px #43b5a055", color: "#73c1a2" }}>🌤</div>
+        <div className="text-[1.58rem] font-semibold text-td-accent mb-0" style={{ letterSpacing: "0.015em" }}>
+          Entry saved
+        </div>
+        <div className="text-lg text-td-muted text-center leading-relaxed" style={{
+          fontWeight: 500, fontFamily: "Inter, Roboto, Arial, sans-serif", fontSize: "1.02em"
+        }}>
           {lastEntry?.title ? <>“{lastEntry.title}”</> : "A new journal entry"}<br />
           Letting go is a brave act. Thank you for giving your mind some space.
         </div>
-        <div className="mt-1 text-md text-td-accent font-medium flex flex-col items-center gap-2">
+        <div
+          className="mt-1 text-md text-td-accent font-bold flex flex-col items-center gap-2 animate-fade-in"
+          style={{ fontSize: "1.25em", letterSpacing: "0.016em" }}>
           <span>
             <span className="font-bold">{streak}</span> day streak!
           </span>
         </div>
         <div className="flex gap-3 mt-3 w-full">
-          <ButtonPrimary onClick={onNewEntry} className="flex-1">New Entry</ButtonPrimary>
-          <ButtonPrimary onClick={onShowHistory} className="bg-td-btn-alt text-td-accent flex-1">
+          <ButtonPrimary onClick={onNewEntry} className="flex-1 btn-large" style={{
+            fontWeight: 700,
+            fontSize: "1.12rem"
+          }}>New Entry</ButtonPrimary>
+          <ButtonPrimary onClick={onShowHistory} className="bg-td-btn-alt text-td-accent flex-1 btn-large" style={{
+            fontWeight: 600, fontSize: "1.11rem"
+          }}>
             View Journal
           </ButtonPrimary>
         </div>
