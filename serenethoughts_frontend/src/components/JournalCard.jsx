@@ -56,11 +56,14 @@ function JournalCard({
   textareaDisabled = false,
   className = "",
   style = {},
-  showCheck = false,         // new: flag to show check icon on successful shred
-  onCheckAnimationEnd,       // new: callback when check animation finishes
+  showCheck = false,
+  onCheckAnimationEnd,
+  onShake, // Optional callback when invalid attempt made
 }) {
   const [showQuote, setShowQuote] = useState(false);
   const [placeholderActive, setPlaceholderActive] = useState(true);
+  const [shake, setShake] = useState(false);
+  const [showEmptyMsg, setShowEmptyMsg] = useState(false);
   const textareaRef = useRef();
 
   useEffect(() => {
@@ -88,7 +91,7 @@ function JournalCard({
         className="st-journalcard-content w-full"
         onSubmit={(e) => {
           e.preventDefault();
-          if (onShred) onShred(value);
+          if (onShred) onShred(value); // Note: actual blocking will use prop logic!
         }}
         autoComplete="off"
         style={{ width: "100%", position: "relative" }}
@@ -153,6 +156,29 @@ function JournalCard({
               duration={900}
               typing={true}
             />
+          )}
+          {/* Feedback for empty-card shredded */}
+          {showEmptyMsg && (
+            <div
+              className="st-card-empty-msg"
+              style={{
+                color: "#B05353",
+                background: "rgba(251,240,239,0.66)",
+                borderRadius: "0.6em",
+                padding: "0.55em 1em",
+                fontSize: "1em",
+                fontWeight: 500,
+                marginTop: 8,
+                marginBottom: 4,
+                minHeight: 36,
+                textAlign: "center",
+                animation: "fade-in 0.38s",
+                boxShadow: "0 1px 9px -7px #eec1b2b0"
+              }}
+              aria-live="polite"
+            >
+              Please write something before shredding.
+            </div>
           )}
         </div>
         <div

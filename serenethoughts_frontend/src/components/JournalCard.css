@@ -206,3 +206,22 @@
     padding: 1.5rem 0.77rem 1.4rem 0.7rem;
   }
 }
+
+/* Soft shake animation for JournalCard on invalid shred attempt */
+.st-card-shake {
+  animation: st-card-shake 0.6s cubic-bezier(.16,.7,.10,1.4);
+}
+
+@keyframes st-card-shake {
+  0% { transform: none; }
+  10% { transform: translateX(-9px) rotate(-0.6deg);}
+  20% { transform: translateX(7px) rotate(1.3deg);}
+  28% { transform: translateX(-6px) rotate(-1.2deg);}
+  36% { transform: translateX(5px) rotate(0.9deg);}
+  42% { transform: translateX(-3px);}
+  65% { transform: translateX(2px);}
+  75% { transform: none;}
+  100% { transform: none;}
+}
+
+/* Feedback message styles available via st-card-empty-msg class in component JSX */

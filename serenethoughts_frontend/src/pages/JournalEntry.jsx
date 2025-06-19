@@ -141,7 +141,10 @@ function JournalEntry({ onComplete, onCancel }) {
   }, []);
 
   // Smooth fade out and modal show on Shred It
-  const handleShred = () => {
+  const handleShred = (textValue) => {
+    // If empty — don't allow shredding, let JournalCard trigger visual feedback
+    if (!textValue || !textValue.trim()) return;
+
     setInputDisabled(true);
     setFading(true);
 
@@ -163,7 +166,7 @@ function JournalEntry({ onComplete, onCancel }) {
         setIsShredded(true);
         setShowCheck(false); // Hide check after animation
         // After modal appears, add entry to array & persist
-        const trimmedText = body.trim();
+        const trimmedText = textValue.trim();
         if (trimmedText.length > 0) {
           const id = generateUuid();
           const text = trimmedText;
@@ -282,6 +285,8 @@ function JournalEntry({ onComplete, onCancel }) {
             className=""
             showCheck={showCheck}
             onCheckAnimationEnd={() => setShowCheck(false)}
+            // Optionally add a callback if you want to do more on shake
+            onShake={() => {/* Could add custom sound/analytics here */}}
           />
         </div>
       )}
