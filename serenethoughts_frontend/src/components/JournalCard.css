@@ -1,0 +1,161 @@
+.st-journalcard-frosted {
+  /* Frosted glass center card */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 330px;
+  max-width: 95vw;
+  width: 410px;
+  min-height: 390px;
+  margin: 0 auto;
+  padding: 2.8rem 2.2rem 2rem 2.2rem;
+  border-radius: 1.35em;
+  box-shadow: 0 10px 36px 0 rgba(95,130,150,0.13), 0 1.5px 9px -6px #41758f1a;
+  border: 1.5px solid rgba(180,245,220,0.16);
+
+  background: rgba(255,255,255,0.30);
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+  position: relative;
+  z-index: 6;
+  overflow: hidden;
+  animation: fade-in 650ms cubic-bezier(.45,0,.28,1.48) both;
+}
+
+.st-journalcard-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1.5rem;
+}
+
+.st-journalcard-label {
+  display: none; /* for screen readers only -- see .sr-only if using an a11y utility */
+}
+
+.st-journalcard-textarea {
+  resize: none;
+  width: 100%;
+  min-height: 120px;
+  font-size: 1.15rem;
+  line-height: 1.42;
+  color: #253c35;
+  background: rgba(255,255,255, 0.21);
+  border: 1.5px solid rgba(97,139,120, 0.19);
+  border-radius: 10px;
+  padding: 1.05rem 1rem;
+  box-shadow: 0 2px 8px -6px #67d6b314;
+  outline: none;
+  transition: transform 0.19s cubic-bezier(.44,0,.18,1.8), box-shadow 0.19s, border-color 0.17s, background 0.19s;
+  font-family: "Inter", "Roboto", system-ui, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+.st-journalcard-textarea:focus {
+  transform: scale(1.02);
+  border-color: #A8D5BA;
+  box-shadow: 0 3px 18px -9px #91e5cd55;
+  background: rgba(255,255,255, 0.27);
+}
+
+.st-journalcard-textarea::placeholder {
+  color: #819a8d;
+  opacity: 0.91;
+  font-size: 1.07em;
+}
+
+.st-journalcard-quote {
+  opacity: 0;
+  transform: translateY(16px);
+  color: #319b87;
+  font-size: 1.09rem;
+  font-style: italic;
+  text-align: center;
+  font-weight: 500;
+  margin-top: 0.2rem;
+  margin-bottom: 0.25rem;
+  pointer-events: none;
+  transition: opacity 0.66s cubic-bezier(.49,0,.22,1.1), transform 0.49s cubic-bezier(.4,0,.3,1.18);
+  /* Initially invisible, then fade in w/ delay */
+}
+
+.st-journalcard-quote-visible {
+  opacity: 1;
+  transform: translateY(0);
+  animation: jd-quote-fadein 1.08s cubic-bezier(.43,0,.31,1.24) 0.33s both;
+}
+
+@keyframes jd-quote-fadein {
+  0% { opacity: 0; transform: translateY(28px);}
+  60% { opacity: 0.59; transform: translateY(9px);}
+  100% { opacity: 1; transform: translateY(0);}
+}
+
+.st-shredit-btn {
+  margin-top: 0.45rem;
+  padding: 0.83rem 0;
+  width: 100%;
+  background: linear-gradient(90deg, #43b5a0 30%, #80ced7 100%);
+  color: #fff;
+  font-size: 1.19em;
+  font-weight: 500;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  box-shadow: 0 0 6px 1.5px #43b5a0a9, 0 3.5px 18px -6px #39c1af42;
+  transition: box-shadow 0.22s, background 0.16s, transform 0.17s;
+  outline: none;
+  position: relative;
+  z-index: 2;
+  text-shadow: 0 1.5px 8px #3da98c30;
+  animation: st-shredit-btn-glow-pulse 3.5s ease-in-out infinite alternate;
+}
+
+.st-shredit-btn:focus,
+.st-shredit-btn:hover {
+  background: linear-gradient(90deg, #319b87 33%, #51dfc7 100%);
+  box-shadow: 0 0 16px 4px #44e1afcc, 0 2px 24px -8px #319b87bb;
+  transform: scale(1.033);
+}
+
+.st-shredit-btn:disabled {
+  opacity: 0.55;
+  pointer-events: none;
+  background: #d2efe8;
+  color: #bababa;
+  text-shadow: none;
+  box-shadow: none;
+}
+
+/* Button glowing pulsing animation */
+@keyframes st-shredit-btn-glow-pulse {
+  0% { box-shadow: 0 0 5px 1.3px #43b5a0a9, 0 0px 18px -7px #39c1af42; }
+  50% { box-shadow: 0 0 15px 7px #43b5a0cc, 0 4px 28px -6px #46d8c877; }
+  100% { box-shadow: 0 0 6px 1.2px #43b5a0a9, 0 1.5px 18px -6px #42ecd46b; }
+}
+
+/* Visually hidden (for accessibility only, keep in case app has utility) */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0,0,0,0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+@media (max-width: 600px) {
+  .st-journalcard-frosted {
+    min-width: 96vw;
+    width: 99vw;
+    max-width: 100vw;
+    padding: 1.5rem 0.77rem 1.4rem 0.7rem;
+  }
+}

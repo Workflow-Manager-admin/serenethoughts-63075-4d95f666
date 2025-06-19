@@ -1,39 +1,76 @@
-import React from "react";
+import React, { useRef, useEffect, useState } from "react";
+import "./JournalCard.css";
 
 // PUBLIC_INTERFACE
-function JournalCard({ entry, onDelete }) {
-  const date = new Date(entry.date);
+/**
+ * JournalCard — A centered, frosted glass card for journaling thoughts.
+ * Features:
+ * - Textarea with placeholder and CSS scale-up on focus.
+ * - Delayed, animated motivational quote.
+ * - Glowing "Shred It" button.
+ */
+function JournalCard({
+  value,
+  onChange,
+  onShred,
+  textareaDisabled = false,
+  className = "",
+  style = {},
+}) {
+  const [showQuote, setShowQuote] = useState(false);
+  const textareaRef = useRef();
+
+  useEffect(() => {
+    // Fade in the quote after a delay
+    const timeout = setTimeout(() => setShowQuote(true), 750);
+    return () => clearTimeout(timeout);
+  }, []);
+
+  // Allow Enter to submit only if we later wish to submit on Enter
+  // -- for now, no submission by pressing Enter
+  
   return (
-    <div className="td-card bg-td-card rounded shadow-sm mb-3 px-4 py-4 flex flex-col gap-2 animate-fade-in">
-      <div className="text-xs text-td-muted mb-1">
-        {date.toLocaleDateString(undefined, {
-          weekday: "short",
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-        })}{" "}
-        <span className="ml-2 text-td-muted-md">
-          {date.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
-        </span>
-      </div>
-      <div className="font-medium text-lg text-td-text mb-1">{entry.title}</div>
-      <div className="text-td-text-soft leading-relaxed whitespace-pre-line">{entry.body}</div>
-      <div className="text-xs text-td-tag mt-2 flex items-center gap-2">
-        {entry.tags && entry.tags.map(t => (
-            <span key={t} className="bg-td-accent/20 text-td-accent px-2 py-0.5 rounded-full">{t}</span>
-        ))}
-        {onDelete && (
-          <button
-            className="ml-auto text-td-warn hover:bg-td-warn/10 rounded px-2 py-1 transition"
-            title="Delete entry"
-            aria-label="Delete"
-            onClick={() => onDelete(entry.id)}
-            type="button"
-          >
-            🗑
-          </button>
-        )}
-      </div>
+    <div className={`st-journalcard-frosted ${className}`} style={style}>
+      <form
+        className="st-journalcard-content"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (onShred) onShred(value);
+        }}
+        autoComplete="off"
+      >
+        <label htmlFor="journal-textarea" className="st-journalcard-label">
+          {/* label is visually-hidden for accessibility */}
+          <span className="sr-only">Write what's bothering you</span>
+        </label>
+        <textarea
+          ref={textareaRef}
+          id="journal-textarea"
+          className="st-journalcard-textarea"
+          placeholder="Type what’s bothering you…"
+          value={value}
+          onChange={onChange}
+          disabled={textareaDisabled}
+          maxLength={1500}
+          spellCheck
+          autoFocus
+        />
+        <div
+          className={`st-journalcard-quote${showQuote ? " st-journalcard-quote-visible" : ""}`}
+          aria-live="polite"
+        >
+          Let it go. You’ve taken the first step.
+        </div>
+        <button
+          className="st-shredit-btn"
+          type="submit"
+          tabIndex={0}
+          aria-label="Shred It"
+          disabled={textareaDisabled || !value.trim()}
+        >
+          Shred It
+        </button>
+      </form>
     </div>
   );
 }
