@@ -5,62 +5,50 @@ import ButtonPrimary from "../components/ButtonPrimary";
 import StreakCounter from "../components/StreakCounter";
 
 /**
- * JournalEntry page - manages the lifecycle of the JournalCard and ConfirmationModal
+ * JournalEntry page — manages the lifecycle of the JournalCard and ConfirmationModal
  * Handles smooth state transitions for the "Shred It" UX flow,
- * and manages textarea value, isShredded state, optional mood, and a local journalEntries array
- * with robust localStorage persistence and loading through useEffect.
+ * clean layout, soft card, consistent feedback animation, and streak logic.
+ * Fully aligned with serene minimal extracted design.
  *
  * Props:
- *  - onComplete(entryObj): callback to parent when journal "shredded" and added
- *  - onCancel(): cancels the journaling session
+ *  - onComplete(entryObj): callback to parent when journal "shredded"
+ *  - onCancel(): cancels the session and returns to welcome
  */
 function JournalEntry({ onComplete, onCancel }) {
-  // Main entry body (textarea input)
+  // Main entry content
   const [body, setBody] = useState("");
-  // Has the entry just been shredded? (controls card/modal animation)
+  // Visual interaction/transition state
   const [isShredded, setIsShredded] = useState(false);
-  // Show animated check
   const [showCheck, setShowCheck] = useState(false);
-  // Mood selection (optional, feel free to expand UI for this as needed)
-  const [mood, setMood] = useState(""); // Placeholder for optional use
-  // Array of all journal entries (local, synced to localStorage)
-  const [journalEntries, setJournalEntries] = useState([]);
-  // UI state
   const [fading, setFading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [inputDisabled, setInputDisabled] = useState(false);
   const [resetKey, setResetKey] = useState(0);
-
-  // Streak state for journaling days
+  // Streak and journalEntries
   const [streak, setStreak] = useState(0);
+  const [journalEntries, setJournalEntries] = useState([]);
+  // Optional mood: placeholder for future expansion
+  const [mood, setMood] = useState("");
 
-  // --- STREAK LOGIC START ---
-  // Compute streak from "thoughtDetoxEntries" localStorage: streak = max run of consecutive day entries including today (if present)
+  // STREAK LOGIC
   function computeStreak(entriesArr) {
     if (!Array.isArray(entriesArr) || entriesArr.length === 0) return 0;
-    // Get all entry ISO dates, normalize to yyyy-mm-dd (no duplicates)
+    // Set of yyyy-mm-dd (unique days)
     const dateSet = new Set();
     for (const entry of entriesArr) {
-      if (entry.timestamp) {
-        dateSet.add(entry.timestamp.slice(0, 10));
-      }
+      if (entry.timestamp) { dateSet.add(entry.timestamp.slice(0, 10)); }
     }
-    const dates = [...dateSet].sort((a, b) => b.localeCompare(a)); // descending
-
+    const dates = [...dateSet].sort((a, b) => b.localeCompare(a)); // desc
     if (dates.length === 0) return 0;
-    // streak starts from today if present, else from yesterday, etc.
     let streakCount = 0;
     let expected = new Date();
-
     for (let i = 0; i < dates.length; ++i) {
       const dStr = dates[i];
       const expectedStr = expected.toISOString().slice(0, 10);
       if (dStr === expectedStr) {
         streakCount++;
       } else {
-        // If today is missing, see if yesterday matches, continue only if previous day(s) match
         if (i === 0 && streakCount === 0) {
-          // Maybe user missed today, try from yesterday
           expected.setDate(expected.getDate() - 1);
           const prevExpectStr = expected.toISOString().slice(0, 10);
           if (dStr === prevExpectStr) {
@@ -75,14 +63,11 @@ function JournalEntry({ onComplete, onCancel }) {
     return streakCount;
   }
 
-  // --- STREAK LOGIC END ---
-
-  // Key for localStorage for legacy journal entries (unused for streak, but kept for compatibility)
+  // LocalStorage keys
   const ENTRIES_KEY = "td_journal_entries";
-  // Key for the real entries used for streak
   const DETOX_ENTRIES_KEY = "thoughtDetoxEntries";
 
-  // Load journal entries from localStorage on mount (robustly handles errors)
+  // On mount, load journalEntries and streak
   useEffect(() => {
     let data = [];
     try {
@@ -91,13 +76,9 @@ function JournalEntry({ onComplete, onCancel }) {
         data = JSON.parse(stored);
         if (!Array.isArray(data)) data = [];
       }
-    } catch (e) {
-      // If error, just ignore and keep data empty
-      data = [];
-    }
+    } catch { data = []; }
     setJournalEntries(data);
 
-    // Also load detox entries for streak count
     try {
       const detoxStored = localStorage.getItem(DETOX_ENTRIES_KEY);
       let detoxArr = [];
@@ -106,80 +87,63 @@ function JournalEntry({ onComplete, onCancel }) {
         if (!Array.isArray(detoxArr)) detoxArr = [];
       }
       setStreak(computeStreak(detoxArr));
-    } catch {
-      setStreak(0);
-    }
+    } catch { setStreak(0); }
   }, []);
 
-  // Save journalEntries array to localStorage whenever it changes
+  // Auto-save journalEntries
   useEffect(() => {
     try {
       localStorage.setItem(ENTRIES_KEY, JSON.stringify(journalEntries));
-    } catch (e) {
-      // Non-blocking, just ignore save error
-    }
+    } catch {}
   }, [journalEntries]);
 
-  // --- Listen for changes to "thoughtDetoxEntries" and update streak ---
+  // Listen for changes to streak in localStorage
   useEffect(() => {
     function handleStorageChange() {
       try {
         const arr = JSON.parse(localStorage.getItem(DETOX_ENTRIES_KEY));
         setStreak(computeStreak(arr || []));
-      } catch {
-        setStreak(0);
-      }
+      } catch { setStreak(0); }
     }
     window.addEventListener("storage", handleStorageChange);
-    // For same-tab updates: periodically check/local change
-    const interval = setInterval(handleStorageChange, 500); // update streak every 0.5sec if externally changed
-
+    const interval = setInterval(handleStorageChange, 700);
     return () => {
       window.removeEventListener("storage", handleStorageChange);
       clearInterval(interval);
     };
   }, []);
 
-  // Smooth fade out and modal show on Shred It
+  // Shred logic/animation
   const handleShred = (textValue) => {
-    // If empty — don't allow shredding, let JournalCard trigger visual feedback (no-op)
     if (!textValue || !textValue.trim()) {
-      return;
+      return; // JournalCard handles feedback visually.
     }
-
     setInputDisabled(true);
     setFading(true);
 
-    // Inline lightweight UUID generator
+    // Inline UUIDv4 generator (no deps)
     function generateUuid() {
-      // RFC4122 version 4 compliant UUID (random)
       return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        const r = (Math.random() * 16) | 0;
-        const v = c === "x" ? r : (r & 0x3) | 0x8;
+        const r = (Math.random() * 16) | 0, v = c === "x" ? r : (r & 0x3) | 0x8;
         return v.toString(16);
       });
     }
 
-    // Wait for fade out CSS animation to finish, then show check icon, then modal
+    // Animation: fade out, then check, then modal
     setTimeout(() => {
-      setShowCheck(true);   // Show the check icon, triggers fade-in
+      setShowCheck(true);
       setTimeout(() => {
         setShowModal(true);
         setIsShredded(true);
-        setShowCheck(false); // Hide check after animation
-        // After modal appears, add entry to array & persist
+        setShowCheck(false);
+        // Save entry
         const trimmedText = textValue.trim();
         if (trimmedText.length > 0) {
           const id = generateUuid();
           const text = trimmedText;
           const timestamp = new Date().toISOString();
-
-          // Entry object structure per requirements
           const detoxEntry = { id, text, timestamp };
-
-          // Save to "thoughtDetoxEntries" in localStorage
           try {
-            // Get previous array or initialize
             let allEntries = [];
             const raw = localStorage.getItem(DETOX_ENTRIES_KEY);
             if (raw) {
@@ -189,17 +153,11 @@ function JournalEntry({ onComplete, onCancel }) {
             allEntries.unshift(detoxEntry);
             localStorage.setItem(DETOX_ENTRIES_KEY, JSON.stringify(allEntries));
             setStreak(computeStreak(allEntries));
-
-            // Check for 7th entry completion (exactly upon writing the 7th entry)
             if (allEntries.length === 7) {
-              // Optionally store a flag for completion celebration
               localStorage.setItem("td_seven_complete", "yes");
             }
-          } catch (e) {
-            setStreak(0);
-          }
-
-          // Maintain the original journalEntries array (for legacy or other UI)
+          } catch { setStreak(0); }
+          // For legacy/compat
           const entryObj = {
             id,
             body: trimmedText,
@@ -207,9 +165,8 @@ function JournalEntry({ onComplete, onCancel }) {
             timestamp,
           };
           setJournalEntries(prev => [entryObj, ...prev]);
-          // Propagate to parent (if parent wants to act immediately)
+          // Notify parent if appropriate
           if (typeof onComplete === "function") {
-            // Signal with second param if it's their 7th entry
             try {
               let allEntries = [];
               const raw = localStorage.getItem(DETOX_ENTRIES_KEY);
@@ -227,50 +184,50 @@ function JournalEntry({ onComplete, onCancel }) {
             }
           }
         }
-      }, 900); // Check appears for about 850-900ms before showing modal
-    }, 360); // matches fade out duration (360ms)
+      }, 940);
+    }, 370);
   };
 
-  // Write More: fade in card again, reset input and isShredded
+  // Write more: reset UI after modal "write more"
   const handleWriteMore = () => {
     setShowModal(false);
     setInputDisabled(false);
     setBody("");
     setFading(false);
-    setResetKey((k) => k + 1);
+    setResetKey(k => k + 1);
     setIsShredded(false);
-    // Mood reset (optional)
     setMood("");
   };
 
-  // I'm Done: close modal and optionally propagate action to parent
+  // Done: go to history after modal
   const handleDone = () => {
     setShowModal(false);
     setInputDisabled(false);
     setBody("");
     setFading(false);
-    setResetKey((k) => k + 1);
+    setResetKey(k => k + 1);
     setIsShredded(false);
     setMood("");
-    // Parent handles navigation; can also trigger history if desired
     if (typeof onComplete === "function") {
-      // Just signal to parent with empty entry, to indicate user pressed "Done"
       onComplete(null, { toHistory: true });
     }
   };
 
-  // Optionally, expose journalEntries locally for advanced features
-
+  // --- Render ---
   return (
     <section
-      className="container mx-auto max-w-xl mt-8 flex flex-col items-center min-h-[60vh] justify-center"
-      style={{ position: "relative" }}
+      className="container mx-auto flex flex-col items-center justify-center pt-2 min-h-[65vh]"
+      style={{
+        position: "relative",
+        width: "100%",
+        maxWidth: 560,
+      }}
     >
-      {/* StreakCounter displayed at the top */}
-      <div className="w-full flex justify-center animate-fade-in mb-5" style={{ minHeight: 34 }}>
+      {/* Streak badge */}
+      <div className="w-full flex justify-center mb-6 animate-fade-in" style={{ minHeight: 34 }}>
         <StreakCounter streak={streak} />
       </div>
-      {/* JournalCard */}
+      {/* JournalCard w/ fade and check */}
       {!showModal && (
         <div
           key={resetKey}
@@ -281,28 +238,27 @@ function JournalEntry({ onComplete, onCancel }) {
         >
           <JournalCard
             value={body}
-            onChange={(e) => setBody(e.target.value)}
+            onChange={e => setBody(e.target.value)}
             onShred={handleShred}
             textareaDisabled={inputDisabled}
             className=""
             showCheck={showCheck}
             onCheckAnimationEnd={() => setShowCheck(false)}
-            // Optionally add a callback if you want to do more on shake
-            onShake={() => {/* Could add custom sound/analytics here */}}
+            onShake={() => {/* Optionally custom feedback sound/analytics */}}
           />
         </div>
       )}
-
-      {/* ConfirmationModal */}
+      {/* Modal for "shredded" feedback */}
       <ConfirmationModal
         open={showModal}
-        // “Write More” resets the card (fade in), “I’m Done” triggers go-to-history
         onCancel={handleWriteMore}
         onConfirm={handleDone}
         title="It’s gone. You chose clarity over chaos."
         description={
           <>
-            <div>That thought… it drifted into the wind.</div>
+            <div style={{ marginBottom: 4 }}>
+              That thought… it drifted into the wind.
+            </div>
             <div className="flex flex-col gap-3 mt-6 w-full">
               <ButtonPrimary className="w-full mb-1" onClick={handleWriteMore}>
                 Write More
@@ -314,7 +270,7 @@ function JournalEntry({ onComplete, onCancel }) {
           </>
         }
       />
-      {/* If modal is open, hide default footer buttons */}
+      {/* Cancel button (hidden if modal) */}
       {!showModal && (
         <div className="flex gap-2 justify-end mt-3 w-full max-w-md">
           <ButtonPrimary
