@@ -30,17 +30,17 @@ function JournalCard({
   // -- for now, no submission by pressing Enter
   
   return (
-    <div className={`st-journalcard-frosted ${className}`} style={style}>
+    <div className={`st-journalcard-frosted mx-auto ${className}`} style={style}>
       <form
-        className="st-journalcard-content"
+        className="st-journalcard-content w-full"
         onSubmit={(e) => {
           e.preventDefault();
           if (onShred) onShred(value);
         }}
         autoComplete="off"
+        style={{ width: "100%" }}
       >
         <label htmlFor="journal-textarea" className="st-journalcard-label">
-          {/* label is visually-hidden for accessibility */}
           <span className="sr-only">Write what's bothering you</span>
         </label>
         <textarea
@@ -54,6 +54,14 @@ function JournalCard({
           maxLength={1500}
           spellCheck
           autoFocus
+          style={{
+            width: "100%",
+            maxWidth: "100%",
+            minWidth: "0",
+            resize: "vertical",
+            minHeight: "120px",
+            boxSizing: "border-box",
+          }}
         />
         <div
           className={`st-journalcard-quote${showQuote ? " st-journalcard-quote-visible" : ""}`}
@@ -62,11 +70,14 @@ function JournalCard({
           Let it go. You’ve taken the first step.
         </div>
         <button
-          className="st-shredit-btn"
+          className="st-shredit-btn w-full"
           type="submit"
           tabIndex={0}
           aria-label="Shred It"
           disabled={textareaDisabled || !value.trim()}
+          style={{
+            width: "100%"
+          }}
         >
           Shred It
         </button>
