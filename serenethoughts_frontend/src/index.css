@@ -235,6 +235,11 @@ main, .main-centered {
 /* Animations */
 @keyframes fade-in { from { opacity: 0 } to { opacity: 1 } }
 @keyframes fade-in-fast { from { opacity: 0 } to { opacity: 1 } }
+@keyframes fade-in-slow {
+  0% { opacity: 0; }
+  55% { opacity: 0; }
+  100% { opacity: 1; }
+}
 @keyframes soft-in {
   from { opacity: 0; transform: scale(0.98) translateY(12px);}
   to   { opacity: 1; transform: scale(1) translateY(0);}
@@ -248,7 +253,7 @@ main, .main-centered {
   100% { opacity: 1; transform: translateY(0);}
 }
 .animate-fade-in        { animation: fade-in 600ms cubic-bezier(.42,0,.29,1.6) both; }
-.animate-fade-in-slow   { animation: fade-in 1350ms cubic-bezier(.40,0,.23,1.5) both; }
+.animate-fade-in-slow   { animation: fade-in-slow 1280ms cubic-bezier(.40,0,.23,1.5) both; }
 .animate-fade-in-fast   { animation: fade-in-fast 270ms cubic-bezier(.42,0,.29,1.6) both; }
 .animate-soft-in        { animation: soft-in 600ms cubic-bezier(.41,0,.16,1.78) both; }
 .animate-soft-scale-out { animation: soft-scale-out 360ms cubic-bezier(.60,.04,0,1.02) both; }

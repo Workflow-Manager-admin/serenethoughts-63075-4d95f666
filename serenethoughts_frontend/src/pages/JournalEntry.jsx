@@ -179,6 +179,12 @@ function JournalEntry({ onComplete, onCancel }) {
           allEntries.unshift(detoxEntry);
           localStorage.setItem(DETOX_ENTRIES_KEY, JSON.stringify(allEntries));
           setStreak(computeStreak(allEntries));
+
+          // Check for 7th entry completion (exactly upon writing the 7th entry)
+          if (allEntries.length === 7) {
+            // Optionally store a flag for completion celebration
+            localStorage.setItem("td_seven_complete", "yes");
+          }
         } catch (e) {
           setStreak(0);
         }
@@ -193,7 +199,22 @@ function JournalEntry({ onComplete, onCancel }) {
         setJournalEntries(prev => [entryObj, ...prev]);
         // Propagate to parent (if parent wants to act immediately)
         if (typeof onComplete === "function") {
-          onComplete(entryObj);
+          // Signal with second param if it's their 7th entry
+          try {
+            let allEntries = [];
+            const raw = localStorage.getItem(DETOX_ENTRIES_KEY);
+            if (raw) {
+              allEntries = JSON.parse(raw);
+              if (!Array.isArray(allEntries)) allEntries = [];
+            }
+            if (allEntries.length === 7) {
+              onComplete(entryObj, { toCelebration: true });
+            } else {
+              onComplete(entryObj);
+            }
+          } catch {
+            onComplete(entryObj);
+          }
         }
       }
     }, 360); // matches fade out duration (360ms)

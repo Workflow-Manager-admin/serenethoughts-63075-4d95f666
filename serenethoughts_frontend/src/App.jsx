@@ -32,7 +32,8 @@ function App() {
     localStorage.setItem(STREAK_KEY, streak + "");
   }, [streak]);
 
-  const handleEntrySubmit = (entry) => {
+  // PUBLIC_INTERFACE
+  const handleEntrySubmit = (entry, options = {}) => {
     const now = new Date();
     const today = now.toISOString().slice(0, 10);
     const lastEntryDate = localStorage.getItem(LAST_ENTRY_DATE_KEY);
@@ -52,15 +53,24 @@ function App() {
     setStreak(newStreak);
     localStorage.setItem(LAST_ENTRY_DATE_KEY, today);
 
-    setEntries([
-      {
-        ...entry,
-        date: now.toISOString(),
-        id: now.getTime(),
-      },
-      ...entries,
-    ]);
-    setPage("complete");
+    if (entry) {
+      setEntries([
+        {
+          ...entry,
+          date: now.toISOString(),
+          id: now.getTime(),
+        },
+        ...entries,
+      ]);
+    }
+
+    if (options && options.toCelebration) {
+      setPage("completion");
+    } else if (options && options.toHistory) {
+      setPage("history");
+    } else {
+      setPage("complete");
+    }
   };
 
   const handleDeleteEntry = (id) => {
@@ -71,6 +81,7 @@ function App() {
   const goToEntry = () => setPage("entry");
   const goToHistory = () => setPage("history");
   const goToComplete = () => setPage("complete");
+  const goToCelebration = () => setPage("completion");
 
   return (
     <ThemeProvider>
@@ -102,6 +113,18 @@ function App() {
               onShowHistory={goToHistory}
               streak={streak}
               lastEntry={entries[0]}
+            />
+          )}
+          {page === "completion" && (
+            <CompletionScreen
+              onNewEntry={goToEntry}
+              onShowHistory={goToHistory}
+              streak={streak}
+              lastEntry={entries[0]}
+              isCelebration
+              returnToJournal={goToEntry}
+              viewProgress={goToHistory}
+              goToWelcome={goToWelcome}
             />
           )}
         </main>
