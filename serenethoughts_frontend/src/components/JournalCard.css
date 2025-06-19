@@ -63,10 +63,57 @@
 }
 
 .st-journalcard-textarea::placeholder {
+  /* Native placeholder hidden—animation overlays instead */
   color: #819a8d;
-  opacity: 0.91;
+  opacity: 0;
   font-size: 1.07em;
+  transition: opacity 0.2s;
 }
+
+/* Animated placeholder overlay for JournalCard */
+.st-journalcard-animated-placeholder {
+  position: absolute;
+  top: 1.04rem; /* match textarea vertical padding */
+  left: 1.1rem;
+  right: 1rem;
+  pointer-events: none;
+  color: #819a8d;
+  font-size: 1.07em;
+  opacity: 0.0;
+  transition: opacity 0.4s cubic-bezier(.47,0,.39,1.26);
+  font-family: inherit;
+  letter-spacing: 0.01em;
+  line-height: 1.4;
+  user-select: none;
+  z-index: 3;
+  white-space: pre; /* allow spaces for typing effect */
+  font-weight: 400;
+}
+
+.st-journalcard-animated-placeholder-active {
+  opacity: 0.91;
+  transition: opacity 0.44s cubic-bezier(.48,0,.19,0.98);
+}
+
+/* For fade-in (non-typing)—currently not used */
+.st-journalcard-animated-placeholder-fade.st-journalcard-animated-placeholder-active {
+  animation: st-journalcard-placeholder-fadein 0.76s cubic-bezier(.41,0,.19,1.18) both;
+}
+@keyframes st-journalcard-placeholder-fadein {
+  0% { opacity: 0; transform: translateY(8px);}
+  100% { opacity: 0.91; transform: none;}
+}
+
+/* Typing effect: just revealed letter-by-letter, no CSS required.
+   Optionally, slight blinking cursor (optional, calm style: transparent/none). */
+.st-journalcard-animated-placeholder-typing::after {
+  content: "";
+  display: inline-block;
+  width: 0.36em;
+  opacity: 0;
+  margin-left: 0.17em;
+}
+
 
 .st-journalcard-quote {
   opacity: 0;
