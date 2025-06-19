@@ -61,6 +61,17 @@ function JournalEntry({ onComplete, onCancel }) {
   const handleShred = () => {
     setInputDisabled(true);
     setFading(true);
+
+    // Inline lightweight UUID generator
+    function generateUuid() {
+      // RFC4122 version 4 compliant UUID (random)
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        const r = (Math.random() * 16) | 0;
+        const v = c === "x" ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+      });
+    }
+
     // Wait for fade out CSS animation to finish
     setTimeout(() => {
       setShowModal(true);
@@ -68,11 +79,34 @@ function JournalEntry({ onComplete, onCancel }) {
       // After modal appears, add entry to array & persist
       const trimmedText = body.trim();
       if (trimmedText.length > 0) {
+        const id = generateUuid();
+        const text = trimmedText;
+        const timestamp = new Date().toISOString();
+
+        // Entry object structure per requirements
+        const detoxEntry = { id, text, timestamp };
+
+        // Save to "thoughtDetoxEntries" in localStorage
+        try {
+          // Get previous array or initialize
+          let allEntries = [];
+          const raw = localStorage.getItem("thoughtDetoxEntries");
+          if (raw) {
+            allEntries = JSON.parse(raw);
+            if (!Array.isArray(allEntries)) allEntries = [];
+          }
+          allEntries.unshift(detoxEntry);
+          localStorage.setItem("thoughtDetoxEntries", JSON.stringify(allEntries));
+        } catch (e) {
+          // Silently ignore storage errors
+        }
+
+        // Maintain the original journalEntries array (for legacy or other UI)
         const entryObj = {
-          id: Date.now(),
+          id,
           body: trimmedText,
           mood,
-          timestamp: new Date().toISOString(),
+          timestamp,
         };
         setJournalEntries(prev => [entryObj, ...prev]);
         // Propagate to parent (if parent wants to act immediately)
