@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import JournalCard from "../components/JournalCard";
 import ConfirmationModal from "../components/ConfirmationModal";
 import ButtonPrimary from "../components/ButtonPrimary";
@@ -6,15 +6,56 @@ import ButtonPrimary from "../components/ButtonPrimary";
 // PUBLIC_INTERFACE
 /**
  * JournalEntry page - manages the lifecycle of the JournalCard and ConfirmationModal
- * Handles smooth state transitions for the "Shred It" UX flow.
+ * Handles smooth state transitions for the "Shred It" UX flow,
+ * and manages textarea value, isShredded state, optional mood, and a local journalEntries array
+ * with robust localStorage persistence and loading through useEffect.
+ *
+ * Props:
+ *  - onComplete(entryObj): callback to parent when journal "shredded" and added
+ *  - onCancel(): cancels the journaling session
  */
 function JournalEntry({ onComplete, onCancel }) {
-  // Entry state
+  // Main entry body (textarea input)
   const [body, setBody] = useState("");
+  // Has the entry just been shredded? (controls card/modal animation)
+  const [isShredded, setIsShredded] = useState(false);
+  // Mood selection (optional, feel free to expand UI for this as needed)
+  const [mood, setMood] = useState(""); // Placeholder for optional use
+  // Array of all journal entries (local, synced to localStorage)
+  const [journalEntries, setJournalEntries] = useState([]);
+  // UI state
   const [fading, setFading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [inputDisabled, setInputDisabled] = useState(false);
   const [resetKey, setResetKey] = useState(0);
+
+  // Key for localStorage
+  const ENTRIES_KEY = "td_journal_entries";
+
+  // Load journal entries from localStorage on mount (robustly handles errors)
+  useEffect(() => {
+    let data = [];
+    try {
+      const stored = localStorage.getItem(ENTRIES_KEY);
+      if (stored) {
+        data = JSON.parse(stored);
+        if (!Array.isArray(data)) data = [];
+      }
+    } catch (e) {
+      // If error, just ignore and keep data empty
+      data = [];
+    }
+    setJournalEntries(data);
+  }, []);
+
+  // Save journalEntries array to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(ENTRIES_KEY, JSON.stringify(journalEntries));
+    } catch (e) {
+      // Non-blocking, just ignore save error
+    }
+  }, [journalEntries]);
 
   // Smooth fade out and modal show on Shred It
   const handleShred = () => {
@@ -23,30 +64,58 @@ function JournalEntry({ onComplete, onCancel }) {
     // Wait for fade out CSS animation to finish
     setTimeout(() => {
       setShowModal(true);
+      setIsShredded(true);
+      // After modal appears, add entry to array & persist
+      const trimmedText = body.trim();
+      if (trimmedText.length > 0) {
+        const entryObj = {
+          id: Date.now(),
+          body: trimmedText,
+          mood,
+          timestamp: new Date().toISOString(),
+        };
+        setJournalEntries(prev => [entryObj, ...prev]);
+        // Propagate to parent (if parent wants to act immediately)
+        if (typeof onComplete === "function") {
+          onComplete(entryObj);
+        }
+      }
     }, 360); // matches fade out duration (360ms)
   };
 
-  // Write More: fade in card again, reset input
+  // Write More: fade in card again, reset input and isShredded
   const handleWriteMore = () => {
     setShowModal(false);
     setInputDisabled(false);
     setBody("");
-    // Quickly reset fade
     setFading(false);
-    // Reset internal quote animation by remounting
     setResetKey((k) => k + 1);
+    setIsShredded(false);
+    // Mood reset (optional)
+    setMood("");
   };
 
-  // I'm Done: navigate to /history via parent callback
+  // I'm Done: close modal and optionally propagate action to parent
   const handleDone = () => {
-    // Navigation: parent handles routing to history
+    setShowModal(false);
+    setInputDisabled(false);
+    setBody("");
+    setFading(false);
+    setResetKey((k) => k + 1);
+    setIsShredded(false);
+    setMood("");
+    // Parent handles navigation; can also trigger history if desired
     if (typeof onComplete === "function") {
-      onComplete({ title: "", body: "", tags: [] }, { toHistory: true });
+      // Just signal to parent with empty entry, to indicate user pressed "Done"
+      onComplete(null, { toHistory: true });
     }
   };
 
+  // Optionally, expose journalEntries locally for advanced features
+
   return (
-    <section className="container mx-auto max-w-xl mt-8 flex flex-col items-center min-h-[60vh] justify-center"
+    <section
+      className="container mx-auto max-w-xl mt-8 flex flex-col items-center min-h-[60vh] justify-center"
       style={{ position: "relative" }}
     >
       {/* JournalCard */}
@@ -102,7 +171,6 @@ function JournalEntry({ onComplete, onCancel }) {
           </ButtonPrimary>
         </div>
       )}
-      {/* Subtle CSS overrides for clean transition if needed */}
       <style>{`
         .animate-soft-scale-out {
           animation: soft-scale-out 360ms cubic-bezier(.60,.04,0,1.02) both;
