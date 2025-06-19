@@ -1,7 +1,12 @@
 import React from "react";
+import { useTheme } from "./ThemeContext";
 
 // PUBLIC_INTERFACE
+/**
+ * Navbar with theme toggle button.
+ */
 function Navbar() {
+  const { theme, toggleTheme } = useTheme();
   return (
     <nav className="td-navbar-nav">
       <div className="td-navbar-content">
@@ -11,16 +16,22 @@ function Navbar() {
         </span>
         <span
           className="td-navbar-icon"
-          aria-label="Settings/Dark mode (placeholder)"
+          aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
           tabIndex={0}
+          onClick={toggleTheme}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") toggleTheme();
+          }}
           style={{
             cursor: "pointer",
-            fontSize: "1.31em",
-            marginLeft: 12,
+            fontSize: "1.35em",
+            marginLeft: 14,
             userSelect: "none"
           }}
+          title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          role="button"
         >
-          ⚙️
+          <span aria-hidden="true">{theme === "dark" ? "🌞" : "🌗"}</span>
         </span>
       </div>
     </nav>

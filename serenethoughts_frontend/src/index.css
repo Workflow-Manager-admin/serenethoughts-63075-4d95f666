@@ -21,7 +21,31 @@
   --td-border: #e2e6e1;
 }
 
-/* Animated pastel gradient background */
+/* Dark theme variables (not harsh black/white, use gentle dark-blues/greens/greys) */
+[data-theme="dark"] {
+  --td-bg: #242A2B;
+  --td-bg-dark: #1b2324;
+  --td-card: #293233;
+  --td-navbar: #243434;
+  --td-accent: #60ceb7;
+  --td-accent-dark: #44b799;
+  --td-btn: #44b799;
+  --td-btn-alt: #314d48;
+  --td-btn-cancel: #382e2e;
+  --td-btn-confirm: #2e3b32;
+  --td-success: #52ffc9;
+  --td-text: #e5efef;
+  --td-text-soft: #bcd7c5;
+  --td-muted: #7d9aa0;
+  --td-muted-lt: #899fa0;
+  --td-muted-md: #4e665f;
+  --td-tag: #60ceb7;
+  --td-warn: #ffc8a5;
+  --td-streak: #313934;
+  --td-border: #2f3e3b;
+}
+
+/* Animated pastel gradient background (light) */
 body {
   font-family: "Inter", "Roboto", "Helvetica", Arial, sans-serif;
   min-height: 100vh;
@@ -36,7 +60,14 @@ body {
   flex-direction: column;
 }
 
-/* Keyframes for VERY slow, soft gradient movement */
+/* Soft dark background animation for dark mode */
+[data-theme="dark"] body {
+  background: linear-gradient(120deg, #243434 0%, #38404d 50%, #293f37 100%);
+  color: var(--td-text);
+  animation: pastel-gradient-move 48s ease-in-out infinite;
+}
+
+/* Keyframes for gradient movement */
 @keyframes pastel-gradient-move {
   0% { background-position: 0% 50%; }
   20% { background-position: 25% 100%; }
@@ -57,8 +88,6 @@ body {
   position: relative;
   z-index: 0;
 }
-
-/* Main content area handling (for App.jsx container structure) */
 main, .main-centered {
   flex: 1 1 0;
   display: flex;
@@ -72,8 +101,6 @@ main, .main-centered {
   position: relative;
   z-index: 1;
 }
-
-/* Utility: container */
 .container {
   width: 100%;
   max-width: 46rem;
@@ -87,10 +114,8 @@ main, .main-centered {
 
 /* Navbar overlay effect */
 .td-navbar {
-  /* old navbar class - deprecated for new fixed nav, kept for legacy usage */
   display: none !important;
 }
-
 .td-navbar-nav {
   position: fixed;
   top: 0; left: 0; width: 100vw;
@@ -104,6 +129,10 @@ main, .main-centered {
   justify-content: center;
   padding: 0;
   transition: box-shadow 0.18s cubic-bezier(.5,.03,.3,1), background 0.15s;
+}
+[data-theme="dark"] .td-navbar-nav {
+  background: var(--td-navbar);
+  box-shadow: 0 1px 6px #171e1c55;
 }
 
 .td-navbar-content {
@@ -153,7 +182,7 @@ main, .main-centered {
   color: var(--td-muted);
   background: none;
   border: none;
-  padding: 2px 3px;
+  padding: 3px 8px;
   margin-left: 10px;
   border-radius: 6px;
   transition: background 0.18s;
@@ -164,22 +193,13 @@ main, .main-centered {
   outline: none;
 }
 
-@media (max-width: 700px) {
-  .td-navbar-content { 
-    max-width: 99vw !important;
-    padding-left: 2vw !important; padding-right: 2vw !important;
-    height: 42px; min-height: 36px;
-  }
-  .td-navbar-nav { min-height: 41px; height: 42.5px; }
-  .td-navbar-title { font-size: 1.03rem; }
-}
-/* End Navbar styles */
+[data-theme="dark"] .td-navbar-title { color: var(--td-accent); }
+[data-theme="dark"] .td-navbar-logo { color: var(--td-accent); }
+[data-theme="dark"] .td-navbar-icon { color: var(--td-muted-lt); }
+[data-theme="dark"] .td-navbar-icon:focus-visible,
+[data-theme="dark"] .td-navbar-icon:hover { background: var(--td-accent); color: #fff; }
 
-.td-logo { user-select: none; color: var(--td-accent); letter-spacing: 0.01em; }
-
-/* Card and button styles remain as provided */
-/* ... Copy over component, button, card, etc. classes ... */
-
+/* Buttons, cards, etc remain unchanged, will auto-adapt via CSS vars */
 .td-btn {
   background: var(--td-btn);
   color: #fff;
@@ -198,14 +218,12 @@ main, .main-centered {
   padding: 14px 26px;
   font-size: 1.18rem;
 }
-
 .td-btn:focus,
 .td-btn:hover {
   background: var(--td-accent-dark);
   transform: translateY(-1px) scale(1.033);
   box-shadow: 0 6px 20px -14px #399d8c80;
 }
-
 /* Card styling */
 .td-card {
   background: var(--td-card);
@@ -248,14 +266,12 @@ footer {
   z-index: 2;
 }
 
-/* Responsive design: Mobile tweaks */
 @media (max-width: 700px) {
   .container, .max-w-xl, .max-w-md, .max-w-2xl { max-width: 98vw !important; }
   .container { padding: 0 4vw; }
   .td-card, .td-navbar { border-radius: 0.49em; }
   main { padding-top: 3.3rem !important; }
 }
-
 ::-webkit-scrollbar {
   width: 0.45em;
   background: var(--td-bg-dark);
@@ -266,7 +282,5 @@ footer {
   border-radius: 1em;
 }
 
-/* Utilities (retain from template or adjust as needed) */
 .w-full { width: 100%; }
 .mx-auto { margin-left: auto; margin-right: auto; }
-/* ... other utilities as provided ... */

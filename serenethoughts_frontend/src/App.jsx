@@ -4,8 +4,11 @@ import WelcomeScreen from "./pages/WelcomeScreen";
 import JournalEntry from "./pages/JournalEntry";
 import EntryHistory from "./pages/EntryHistory";
 import CompletionScreen from "./pages/CompletionScreen";
+import { ThemeProvider } from "./components/ThemeContext";
 
-// PUBLIC_INTERFACE
+/**
+ * App with theme provider.
+ */
 function App() {
   const [page, setPage] = useState("welcome");
   const [entries, setEntries] = useState([]);
@@ -70,41 +73,43 @@ function App() {
   const goToComplete = () => setPage("complete");
 
   return (
-    <div className="td-app min-h-screen bg-td-bg text-td-text font-sans transition-colors">
-      <Navbar />
-      <main className="pt-16 flex flex-col flex-1 min-h-[80vh] transition-colors">
-        {page === "welcome" && (
-          <WelcomeScreen
-            onStart={goToEntry}
-            entries={entries}
-          />
-        )}
-        {page === "entry" && (
-          <JournalEntry
-            onComplete={handleEntrySubmit}
-            onCancel={goToWelcome}
-          />
-        )}
-        {page === "history" && (
-          <EntryHistory
-            entries={entries}
-            onDelete={handleDeleteEntry}
-            onBack={goToComplete}
-          />
-        )}
-        {page === "complete" && (
-          <CompletionScreen
-            onNewEntry={goToEntry}
-            onShowHistory={goToHistory}
-            streak={streak}
-            lastEntry={entries[0]}
-          />
-        )}
-      </main>
-      <footer className="text-xs text-td-muted text-center py-6 select-none opacity-75">
-        Thought Detox &copy; {new Date().getFullYear()} - Built with calm and care.
-      </footer>
-    </div>
+    <ThemeProvider>
+      <div className="td-app min-h-screen bg-td-bg text-td-text font-sans transition-colors">
+        <Navbar />
+        <main className="pt-16 flex flex-col flex-1 min-h-[80vh] transition-colors">
+          {page === "welcome" && (
+            <WelcomeScreen
+              onStart={goToEntry}
+              entries={entries}
+            />
+          )}
+          {page === "entry" && (
+            <JournalEntry
+              onComplete={handleEntrySubmit}
+              onCancel={goToWelcome}
+            />
+          )}
+          {page === "history" && (
+            <EntryHistory
+              entries={entries}
+              onDelete={handleDeleteEntry}
+              onBack={goToComplete}
+            />
+          )}
+          {page === "complete" && (
+            <CompletionScreen
+              onNewEntry={goToEntry}
+              onShowHistory={goToHistory}
+              streak={streak}
+              lastEntry={entries[0]}
+            />
+          )}
+        </main>
+        <footer className="text-xs text-td-muted text-center py-6 select-none opacity-75">
+          Thought Detox &copy; {new Date().getFullYear()} - Built with calm and care.
+        </footer>
+      </div>
+    </ThemeProvider>
   );
 }
 
