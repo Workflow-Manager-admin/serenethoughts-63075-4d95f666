@@ -41,13 +41,13 @@ function AnimatedPlaceholder({active, text, duration = 1000, typing = false}) {
     >{display}</span>
   );
 }
-// PUBLIC_INTERFACE
 /**
  * JournalCard — A centered, frosted glass card for journaling thoughts.
  * Features:
  * - Textarea with placeholder and CSS scale-up on focus.
  * - Delayed, animated motivational quote.
  * - Glowing "Shred It" button.
+ * - Shows fade-in check icon on successful shred.
  */
 function JournalCard({
   value,
@@ -56,6 +56,8 @@ function JournalCard({
   textareaDisabled = false,
   className = "",
   style = {},
+  showCheck = false,         // new: flag to show check icon on successful shred
+  onCheckAnimationEnd,       // new: callback when check animation finishes
 }) {
   const [showQuote, setShowQuote] = useState(false);
   const [placeholderActive, setPlaceholderActive] = useState(true);
@@ -95,6 +97,28 @@ function JournalCard({
           <span className="sr-only">Write what's bothering you</span>
         </label>
         <div style={{position: "relative", width: "100%"}}>
+          {/* Fade-in check icon overlay */}
+          {showCheck && (
+            <span
+              className="st-check-fadein"
+              style={{
+                position: "absolute",
+                zIndex: 10,
+                left: "50%",
+                top: "44%",
+                transform: "translate(-50%, -50%) scale(1)",
+                fontSize: "2.7em",
+                color: "var(--td-success,#299a57)",
+                pointerEvents: "none",
+                opacity: 1,
+                textShadow: "0 2px 18px #79e3bd66, 0 1px 0 #fff",
+                transition: "opacity 0.8s cubic-bezier(.42,0,.14,1.2)",
+                userSelect: "none"
+              }}
+              aria-label="Shredded! Success"
+              onAnimationEnd={onCheckAnimationEnd}
+            >✅</span>
+          )}
           <textarea
             ref={textareaRef}
             id="journal-textarea"
@@ -150,6 +174,19 @@ function JournalCard({
           Shred It
         </button>
       </form>
+      {/* Inline style for check animation */}
+      <style>{`
+        .st-check-fadein {
+          animation: st-check-fadein-anim 860ms cubic-bezier(.49,0,.19,1.12) both;
+        }
+        @keyframes st-check-fadein-anim {
+          0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.7) rotate(-20deg);}
+          62%  { opacity: 1; transform: translate(-50%, -50%) scale(1.14) rotate(6deg);}
+          85%  { opacity: 1; transform: translate(-50%, -50%) scale(0.98) rotate(0);}
+          100% { opacity: 1; transform: translate(-50%, -50%) scale(1.00) rotate(0);}
+        }
+      `}
+      </style>
     </div>
   );
 }

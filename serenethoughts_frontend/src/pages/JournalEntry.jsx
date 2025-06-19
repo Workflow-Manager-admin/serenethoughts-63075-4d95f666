@@ -19,6 +19,8 @@ function JournalEntry({ onComplete, onCancel }) {
   const [body, setBody] = useState("");
   // Has the entry just been shredded? (controls card/modal animation)
   const [isShredded, setIsShredded] = useState(false);
+  // Show animated check
+  const [showCheck, setShowCheck] = useState(false);
   // Mood selection (optional, feel free to expand UI for this as needed)
   const [mood, setMood] = useState(""); // Placeholder for optional use
   // Array of all journal entries (local, synced to localStorage)
@@ -153,70 +155,74 @@ function JournalEntry({ onComplete, onCancel }) {
       });
     }
 
-    // Wait for fade out CSS animation to finish
+    // Wait for fade out CSS animation to finish, then show check icon, then modal
     setTimeout(() => {
-      setShowModal(true);
-      setIsShredded(true);
-      // After modal appears, add entry to array & persist
-      const trimmedText = body.trim();
-      if (trimmedText.length > 0) {
-        const id = generateUuid();
-        const text = trimmedText;
-        const timestamp = new Date().toISOString();
+      setShowCheck(true);   // Show the check icon, triggers fade-in
+      setTimeout(() => {
+        setShowModal(true);
+        setIsShredded(true);
+        setShowCheck(false); // Hide check after animation
+        // After modal appears, add entry to array & persist
+        const trimmedText = body.trim();
+        if (trimmedText.length > 0) {
+          const id = generateUuid();
+          const text = trimmedText;
+          const timestamp = new Date().toISOString();
 
-        // Entry object structure per requirements
-        const detoxEntry = { id, text, timestamp };
+          // Entry object structure per requirements
+          const detoxEntry = { id, text, timestamp };
 
-        // Save to "thoughtDetoxEntries" in localStorage
-        try {
-          // Get previous array or initialize
-          let allEntries = [];
-          const raw = localStorage.getItem(DETOX_ENTRIES_KEY);
-          if (raw) {
-            allEntries = JSON.parse(raw);
-            if (!Array.isArray(allEntries)) allEntries = [];
-          }
-          allEntries.unshift(detoxEntry);
-          localStorage.setItem(DETOX_ENTRIES_KEY, JSON.stringify(allEntries));
-          setStreak(computeStreak(allEntries));
-
-          // Check for 7th entry completion (exactly upon writing the 7th entry)
-          if (allEntries.length === 7) {
-            // Optionally store a flag for completion celebration
-            localStorage.setItem("td_seven_complete", "yes");
-          }
-        } catch (e) {
-          setStreak(0);
-        }
-
-        // Maintain the original journalEntries array (for legacy or other UI)
-        const entryObj = {
-          id,
-          body: trimmedText,
-          mood,
-          timestamp,
-        };
-        setJournalEntries(prev => [entryObj, ...prev]);
-        // Propagate to parent (if parent wants to act immediately)
-        if (typeof onComplete === "function") {
-          // Signal with second param if it's their 7th entry
+          // Save to "thoughtDetoxEntries" in localStorage
           try {
+            // Get previous array or initialize
             let allEntries = [];
             const raw = localStorage.getItem(DETOX_ENTRIES_KEY);
             if (raw) {
               allEntries = JSON.parse(raw);
               if (!Array.isArray(allEntries)) allEntries = [];
             }
+            allEntries.unshift(detoxEntry);
+            localStorage.setItem(DETOX_ENTRIES_KEY, JSON.stringify(allEntries));
+            setStreak(computeStreak(allEntries));
+
+            // Check for 7th entry completion (exactly upon writing the 7th entry)
             if (allEntries.length === 7) {
-              onComplete(entryObj, { toCelebration: true });
-            } else {
+              // Optionally store a flag for completion celebration
+              localStorage.setItem("td_seven_complete", "yes");
+            }
+          } catch (e) {
+            setStreak(0);
+          }
+
+          // Maintain the original journalEntries array (for legacy or other UI)
+          const entryObj = {
+            id,
+            body: trimmedText,
+            mood,
+            timestamp,
+          };
+          setJournalEntries(prev => [entryObj, ...prev]);
+          // Propagate to parent (if parent wants to act immediately)
+          if (typeof onComplete === "function") {
+            // Signal with second param if it's their 7th entry
+            try {
+              let allEntries = [];
+              const raw = localStorage.getItem(DETOX_ENTRIES_KEY);
+              if (raw) {
+                allEntries = JSON.parse(raw);
+                if (!Array.isArray(allEntries)) allEntries = [];
+              }
+              if (allEntries.length === 7) {
+                onComplete(entryObj, { toCelebration: true });
+              } else {
+                onComplete(entryObj);
+              }
+            } catch {
               onComplete(entryObj);
             }
-          } catch {
-            onComplete(entryObj);
           }
         }
-      }
+      }, 900); // Check appears for about 850-900ms before showing modal
     }, 360); // matches fade out duration (360ms)
   };
 
@@ -274,6 +280,8 @@ function JournalEntry({ onComplete, onCancel }) {
             onShred={handleShred}
             textareaDisabled={inputDisabled}
             className=""
+            showCheck={showCheck}
+            onCheckAnimationEnd={() => setShowCheck(false)}
           />
         </div>
       )}
